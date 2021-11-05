@@ -11,15 +11,16 @@
 
 \title{Multimodal Control of Crazyflie Drone with Wii Remote}
 
-\author{First A. Author\footnote{Insert Job Title, Department Name, Address/Mail Stop, and AIAA Member Grade (if any) for first author.} and Second B. Author Jr.\footnote{Insert Job Title, Department Name, Address/Mail Stop, and AIAA Member Grade (if any) for second author.}}
-\affil{Business or Academic Affiliation 1, City, State, Zip Code}
+\author{Erika N. Jarosch, George V. Petrov, Justin L. Roskamp, and Kenneth T. Tochihara}
+\affil{University of Illinois at Urbana-Champaign, Urbana, IL, 61820}
 
 \begin{document}
 
 \maketitle
 
 \begin{abstract}
-The goal of this project is to design and implement a multimodal control interface between a Wii remote and a Crazyflie drone. which will simultaneously move at least two CrazyFlie quadcopters throughout their flight. The controller will be a handheld camera device, such as a Wii remote. The group will utilize two light sources to allow the remote sensing capabilities. Ultimately, the sensing of this remote will contribute to our ability to control the flight patterns and location of our drones. This goal is motivated by the desire to inspire via innovative aerobatics, similar to the drone show that was displayed at an event during the 75th anniversary of the Aerospace Engineering department at the University of Illinois.  Along a similar vein, just as Harry Potter wands in the Wizarding World theme park are used to control objects, a similar philosophy could be used to “cast spells” on drones—the sky is the limit.  Developing intuitive controls beyond those provided by a simple directional pad or buttons can unlock new ways of interacting with these aircraft. Our project will focus primarily on the first order implementation of these controls as a proof of concept. Time permitting, the group would find it interesting to show the drone complete a user specified task, such as solving a 3D maze or obstacle course. A sufficient controller will ensure that the drone remains within stable enough margins while completing these tasks. Our milestones will be to first implement a similar “move_smooth”  function with coordinate inputs on a 2D plane (Nov 1). Then  we will implement an infrared position system (IPS) to return a set of coordinate ranges set by the remote. This will include providing a GUI of the path determined (Nov 8). Finally we will  integrate IPS with the move_smooth variant and test the controller (Nov 15).
+The goal of this project is to design and implement a multimodal control interface between a Wii remote and a Crazyflie 2.0 drone. The Wii remote serves as an input device to a macOS device via DarwiinRemote. This input is then used with Python package Tkinter to convert Wii remote inputs to positional inputs, which can then be passed through one of three anticipated modes: Copycat, Spellcaster, and Live. Each mode interprets Wii remote inputs differently and then passes the mode-determined flight plan to the Crazyflie via the input structures developed in the AE 483 course at the University of Illinois at Urbana-Champaign. This goal is motivated by the desire to inspire others with innovative and interactive aerobatics.
+
 \end{abstract}
 
 \section{Nomenclature}
@@ -43,30 +44,43 @@ The goal of this project is to design and implement a multimodal control interfa
     % \end{longtable*}}
 
 \section{Introduction}
+The Bitcraze Crazyflie drone and its peripherals provide an accessible, open source platform for custom control development and do-it-yourself projects. \cite{crazyflie} With the Crazyradio dongle and Crazyflie Client, it is possible to fly the drone with a standard gaming controller; it is also possible to connect a mobile device directly to the Crazyflie to fly over Bluetooth. However, one can also get closer to the fundamentals of the drone's operation and, as we have done in the AE 483 course, develop custom controllers to perform pre-planned, autonomous flights.
+
+This 
+
+    Just as Harry Potter wands in the Wizarding World theme park are used to control objects, a similar philosophy could be used to “cast spells” on drones—the sky is the limit.  Developing intuitive controls beyond those provided by a simple directional pad or buttons can unlock new ways of interacting with these aircraft. Our project will focus primarily on the first order implementation of these controls as a proof of concept. Time permitting, the group would find it interesting to show the drone complete a user specified task, such as solving a 3D maze or obstacle course. A sufficient controller will ensure that the drone remains within stable enough margins while completing these tasks. Our milestones will be to first implement a similar “move\_smooth”  function with coordinate inputs on a 2D plane (Nov 1). Then  we will implement an infrared position system (IPS) to return a set of coordinate ranges set by the remote. This will include providing a GUI of the path determined (Nov 8). Finally we will  integrate IPS with the move\_smooth variant and test the controller (Nov 15).
 
 \section{Milestones}
 
     \subsection{Week of November 1}
     
+        The first objective to be completed is creating a system to take in drawing inputs. The first implementation is making a system which allows for mouse inputs to draw. In the final product, these inputs will be done by the Wii remote itself, but this serves as stepping stone to learn how to team this drawing paths to the drone. This will be the foundation of the GUI. The overall goal of the GUI is to be an interface between the Wii Remote inputs and the drones flight path. 
+        
+        In this initial milestone, the team is solely focusing on implementing the "Copycat" mode. This is where a path will be drawn, then when that drawing is complete the drone will complete the path. This is seen as the base mode which will allow for the future "Spellcaster" and "Live" mode implementation.
+        
+        First, the GUI will allow for drawing inputs. These drawings will need to output a set of coordinates which will be later converted into move commands for the drone. The GUI will also allow for the flight to be initiated. This is where the GUI will need to interface with the drone's python code. There will need to be communication between \path{gui.py} and \path{flight.py} which will occur in \path{main.py}. 
+        
+         
     \subsection{Week of November 8}
-    
+        
+        The GUI will interface with an instance of the SimpleClient that will allow the user to execute flight through the interface. Through the defined canvas space, the pixel coordinates will be ported over to the SimpleClient instance where the coordinates will be translated to the real-world. Buttons will be implemented where the flight will follow the coordinates as shown in the canvas. 
+        
+        The GUI will also be refined in parallel. There will be specification for modes, incorporating for out future goals if encounter them. Radio buttons will also be implemented to specify the specific plane that the drone will follow the 2D path. These include the XY, XZ, and YZ planes that allow for the drone to fly in. Finally, a sub-interface will be utilized to save the flight data and other pertinent information that could be useful in understanding the flight. 
+        
     \subsection{Week of November 15}
-    
+    <[JUSTIN] Loop in Wii controller; refine GUI>
     \subsection{Week of November 29}
-
+    <[ERIKA] Live & Spellcaster implementation; stretch goals>
 \section{Conclusion}
 
-    A conclusion section is not required, though it is preferred. Although a conclusion may review the main points of the paper, do not replicate the abstract as the conclusion. A conclusion might elaborate on the importance of the work or suggest applications and extensions. \textit{Note that the conclusion section is the last section of the paper that should be numbered. The appendix (if present), acknowledgment, and references should be listed without numbers.}
-
-
 \section*{Appendix}
-
-    An Appendix, if needed, should appear before the acknowledgments.
+<add Github link>
+    \input{docs/reports/Project Update 3/appendix}
 
 \section*{Acknowledgments}
 
-    The authors thank their teaching assistant, Travis Zook, and the lab m
-
+    The authors thank their professor, Tim Bretl; their teaching assistant, Travis Zook; and their laboratory manager, Dan Block.
+    
 \bibliography{sample}
 
 \end{document}
