@@ -8,7 +8,7 @@ from cflib.crazyflie.log import LogConfig
 
 # Specify the uri of the drone to which we want to connect (if your radio
 # channel is X, the uri should be 'radio://0/X/2M/E7E7E7E7E7')
-uri = 'radio://0/34/2M/E7E7E7E7E7'
+uri = 'radio://0/[channel]/2M/E7E7E7E7E7'
 
 # Specify the variables we want to log (all at 100 Hz)
 variables = [
@@ -43,7 +43,10 @@ variables = [
 
 
 class SimpleClient:
-    def __init__(self, uri, use_controller=True, use_observer=False):
+    def __init__(self, uri, use_controller=False, use_observer=False, channel=34):
+        # Initialize everything
+        logging.basicConfig(level=logging.ERROR)
+        cflib.crtp.init_drivers()
         self.init_time = time.time()
         self.use_controller = use_controller
         self.use_observer = use_observer
@@ -56,6 +59,13 @@ class SimpleClient:
         self.cf.open_link(uri)
         self.is_connected = False
         self.data = {}
+        # self.connect()
+        self.channel = uri.replace('[channel]', f'channel')
+        
+    def connect(self):
+        while not self.is_connected:
+            print(f' ... connecting ...')
+            time.sleep(1.0)
 
     def connected(self, uri):
         print(f'Connected to {uri}')
@@ -155,18 +165,16 @@ class SimpleClient:
     def write_data(self, filename='logged_data.json'):
         with open(filename, 'w') as outfile:
             json.dump(self.data, outfile, indent=4, sort_keys=False)
+        
+    # TODO: Erika
+    def get_coordinates(self, coordinates):
+        print(coordinates)
 
 if __name__ == '__main__':
-    # Initialize everything
-    logging.basicConfig(level=logging.ERROR)
-    cflib.crtp.init_drivers()
 
     # Create and start the client that will connect to the drone
-    client = SimpleClient(uri, use_controller=True, use_observer=False)
-    while not client.is_connected:
-        print(f' ... connecting ...')
-        time.sleep(1.0)
-
+    client = SimpleClient(uri, use_controller=False, use_observer=False)
+    
     # Leave time at the start to initialize
     client.stop(1.0)
 
