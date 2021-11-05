@@ -47,6 +47,7 @@ class SimpleClient:
         # Initialize everything
         logging.basicConfig(level=logging.ERROR)
         cflib.crtp.init_drivers()
+        self.uri = uri.replace('[channel]', f'{channel}')
         self.init_time = time.time()
         self.use_controller = use_controller
         self.use_observer = use_observer
@@ -55,12 +56,11 @@ class SimpleClient:
         self.cf.connection_failed.add_callback(self.connection_failed)
         self.cf.connection_lost.add_callback(self.connection_lost)
         self.cf.disconnected.add_callback(self.disconnected)
-        print(f'Connecting to {uri}')
-        self.cf.open_link(uri)
+        print(f'Connecting to {self.uri}')
+        self.cf.open_link(self.uri)
         self.is_connected = False
         self.data = {}
         # self.connect()
-        self.channel = uri.replace('[channel]', f'channel')
         
     def connect(self):
         while not self.is_connected:
@@ -169,6 +169,32 @@ class SimpleClient:
     # TODO: Erika
     def get_coordinates(self, coordinates):
         print(coordinates)
+        
+    # TODO: Erika
+    def flight(self):
+        pass
+        
+    def take_off(self):
+        
+        # Leave time at the start to initialize
+        self.stop(1.0)
+
+        # Take off and hover (with zero yaw)
+        self.move(0.0, 0.0, 0.15, 0.0, 1.0)
+        self.move(0.0, 0.0, 0.50, 0.0, 1.0)
+        
+    def land(self):
+        
+        # Go back to hover (with zero yaw) and prepare to land
+        self.move(0.0, 0.0, 0.50, 0.0, 1.0)
+        self.move(0.0, 0.0, 0.15, 0.0, 1.0)
+
+        # Land
+        self.stop(1.0)
+
+        # Disconnect from drone
+        self.disconnect()
+        
 
 if __name__ == '__main__':
 
