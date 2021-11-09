@@ -5,6 +5,7 @@ import numpy as np
 import cflib.crtp
 from cflib.crazyflie import Crazyflie
 from cflib.crazyflie.log import LogConfig
+# from main import gui
 
 # Specify the uri of the drone to which we want to connect (if your radio
 # channel is X, the uri should be 'radio://0/X/2M/E7E7E7E7E7')
@@ -43,7 +44,7 @@ variables = [
 
 
 class SimpleClient:
-    def __init__(self, uri, use_controller=False, use_observer=False, channel=34):
+    def __init__(self, uri, use_controller=False, use_observer=False, channel=58):
         # Initialize everything
         logging.basicConfig(level=logging.ERROR)
         cflib.crtp.init_drivers()
@@ -167,12 +168,29 @@ class SimpleClient:
             json.dump(self.data, outfile, indent=4, sort_keys=False)
         
     # TODO: Erika
-    def get_coordinates(self, coordinates):
-        print(coordinates)
+    def get_coordinates(self):
+        # call to the gui for translated coordinates
+        coordinates = gui.runFlight()
+        return coordinates
         
     # TODO: Erika
     def flight(self):
-        pass
+        # import runFlight from the GUI
+        # loop through each tuple
+        coordinates = self.get_coordinates()
+        coordinates_len = len(coordinates)-1
+        i = 0
+        for tuple in coordinates:
+            i += 1
+            x = tuple[0]
+            y = tuple[1]
+            z = 0.5 # current constant
+            client.move(x,y,z, 0, 0.02)
+            # reach last tuple, set up to move back to 
+            if i == coordinates_len:
+                client.move_smooth([x,y,z], [0.0, 0.0, 0.0], 0.0, 6.0)
+        # record normalized coordinates from GUI runFlight
+        # maybe: real_coordinates = runFlight()
         
     def take_off(self):
         
@@ -205,24 +223,27 @@ if __name__ == '__main__':
     client.stop(1.0)
 
     # Take off and hover (with zero yaw)
-    client.move(0.0, 0.0, 0.15, 0.0, 1.0)
-    client.move(0.0, 0.0, 0.50, 0.0, 1.0)
+    # client.move(0.0, 0.0, 0.15, 0.0, 1.0)
+    # client.move(0.0, 0.0, 0.50, 0.0, 1.0)
 
     # Fly in a square five times (with a pause at each corner)
-    num_squares = 5
-    for i in range(num_squares):
-        client.move_smooth([0.0, 0.0, 0.5], [0.5, 0.0, 0.5], 0.0, 2.0)
-        client.move(0.5, 0.0, 0.5, 0.0, 1.0)
-        client.move_smooth([0.5, 0.0, 0.5], [0.5, 0.5, 0.5], 0.0, 2.0)
-        client.move(0.5, 0.5, 0.5, 0.0, 1.0)
-        client.move_smooth([0.5, 0.5, 0.5], [0.0, 0.5, 0.5], 0.0, 2.0)
-        client.move(0.0, 0.5, 0.5, 0.0, 1.0)
-        client.move_smooth([0.0, 0.5, 0.5], [0.0, 0.0, 0.5], 0.0, 2.0)
-        client.move(0.0, 0.0, 0.5, 0.0, 1.0)
+    # num_squares = 5
+    # for i in range(num_squares):
+    #     client.move_smooth([0.0, 0.0, 0.5], [0.5, 0.0, 0.5], 0.0, 2.0)
+    #     client.move(0.5, 0.0, 0.5, 0.0, 1.0)
+    #     client.move_smooth([0.5, 0.0, 0.5], [0.5, 0.5, 0.5], 0.0, 2.0)
+    #     client.move(0.5, 0.5, 0.5, 0.0, 1.0)
+    #     client.move_smooth([0.5, 0.5, 0.5], [0.0, 0.5, 0.5], 0.0, 2.0)
+    #     client.move(0.0, 0.5, 0.5, 0.0, 1.0)
+    #     client.move_smooth([0.0, 0.5, 0.5], [0.0, 0.0, 0.5], 0.0, 2.0)
+    #     client.move(0.0, 0.0, 0.5, 0.0, 1.0)
 
     # Go back to hover (with zero yaw) and prepare to land
-    client.move(0.0, 0.0, 0.50, 0.0, 1.0)
-    client.move(0.0, 0.0, 0.15, 0.0, 1.0)
+    # client.move(0.0, 0.0, 0.50, 0.0, 1.0)
+    # client.move(0.0, 0.0, 0.15, 0.0, 1.0)
+
+    # Calling flight function with client move jazz from GUI
+    client.flight()
 
     # Land
     client.stop(1.0)

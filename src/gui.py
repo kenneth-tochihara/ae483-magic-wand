@@ -3,6 +3,7 @@ from tkinter import filedialog
 from tkinter import ttk
 from tkinter import messagebox
 from copy import deepcopy
+# import main
 
 # sizing properties
 window_width  = 500
@@ -35,6 +36,7 @@ class Applet(Tk):
         self.createFlightButton()
         self.createModeSelection()
         self.createPlaneSelection()
+        self.createClear()
         
     # create canvas section
     def createCanvas(self):
@@ -61,6 +63,12 @@ class Applet(Tk):
         self.planeSelectionButton = ttk.Button(self, text="Plane Selection", command=self.runFlight)
         self.planeSelectionButton.place(x=0, y=0)
         self.planeSelectionButton.grid(column=0, row=1, padx=overall_padding, pady=overall_padding)
+
+    # create clear button
+    def createClear(self):
+        self.clearSelectionButton = ttk.Button(self, text="Clear", command=self.clearFlight)
+        self.clearSelectionButton.place(x=0, y=0)
+        self.clearSelectionButton.grid(column=0, row=2, padx=overall_padding, pady=overall_padding)
     
     # create data saving interface
     def createDataSave(self):
@@ -68,6 +76,17 @@ class Applet(Tk):
     
     # action when 'Flight' button is clicked
     def runFlight(self):
+        # normalize based on the window size
+        self.coordinates = np.divide(self.coordinates, canvas_width)
+        # rescale to whatever relevant physical situation
+        flight_zone = 1.5 # client.move interprets meters
+        self.coordinates *= flight_zone
+        # client.move smooth returns home in client code!
+        new_coordinates = self.coordinates
+        return new_coordinates
+
+    # action when 'Clear' button is clicked
+    def clearFlight(self):
         self.canvas.delete('all')
         print('shheesh')
 
