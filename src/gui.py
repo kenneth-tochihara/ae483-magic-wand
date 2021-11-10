@@ -14,9 +14,6 @@ canvas_height = 300
 # padding properties
 overall_padding = 5
 
-# flags
-ob_flag = False
-
 class Applet(Tk):
 
     def __init__(self, client):
@@ -33,7 +30,7 @@ class Applet(Tk):
         
         # create all the objects
         self.createCanvas()
-        self.createFlightButton()
+        self.createFlightControlButtons()
         self.createModeSelection()
         self.createPlaneSelection()
         self.createClear()
@@ -46,32 +43,43 @@ class Applet(Tk):
         self.canvas.bind("<B1-Motion>", self.addLine)
         self.canvas.bind("<ButtonRelease-1>", self.onRelease)
         
-    # create flight button
-    def createFlightButton(self):
-        self.flightButton = ttk.Button(self, text="Run Flight", command=self.runFlight)
-        self.flightButton.place(x=0, y=0)
-        self.flightButton.grid(column=1, row=2, padx=overall_padding, pady=overall_padding)
+    # create flight control buttons
+    def createFlightControlButtons(self):
+        
+        # create flight control frame
+        self.flightControlFrame = ttk.Frame(self)
+        self.flightControlFrame.grid(column=1, row=2, padx=overall_padding, pady=overall_padding)
+        
+        # create connect button
+        self.connectButton = ttk.Button(self.flightControlFrame, text="Connect", command=self.client.connect)
+        self.connectButton.grid(column=0, row=0, padx=overall_padding, pady=overall_padding)
+    
+        # create flight button
+        self.flightButton = ttk.Button(self.flightControlFrame, text="Run Flight", command=self.runFlight)
+        self.flightButton.grid(column=0, row=1, padx=overall_padding, pady=overall_padding)
     
     # create mode selection dropdown
     def createModeSelection(self):
         
         # create mode selection frame
-        self.modeSelectionFrame = ttk.LabelFrame(self, text="Mode Selection",)
+        self.modeSelectionFrame = ttk.LabelFrame(self, text="Mode Selection", labelanchor="n")
         self.modeSelectionFrame.grid(column=0, row=0, padx=overall_padding, pady=overall_padding)
         
         # set default mode
-        self.modes = ["copycat", "spellcaster", "live"]
+        self.modes = ["", "Copycat", "Spellcaster", "Live"]
         self.mode = StringVar()
-        self.mode.set(self.modes[0])
+        self.mode.set(self.modes[1])
         
         # create dropdown menu
-        ttk.OptionMenu(self.modeSelectionFrame, self.mode, *self.modes).pack()
+        self.modeSelectionOptionMenu = ttk.OptionMenu(self.modeSelectionFrame, self.mode, *self.modes)
+        self.modeSelectionOptionMenu.pack()
+        self.modeSelectionOptionMenu.configure(width=len(max(self.modes, key=len)))
     
     # create plane selection
     def createPlaneSelection(self):
         
         # create plane selection frame
-        self.planeSelectionFrame = ttk.LabelFrame(self, text="Plane Selection")
+        self.planeSelectionFrame = ttk.LabelFrame(self, text="Plane Selection", labelanchor="n")
         self.planeSelectionFrame.grid(column=0, row=1, padx=overall_padding, pady=overall_padding)
         
         # set default plane
@@ -105,42 +113,40 @@ class Applet(Tk):
 
     # action when 'Flight' button is clicked
     def runFlight(self):
-        # normalize based on the window size
         self.client.flight(self.flight_coordinates)
         
     # action when 'Clear' button is clicked
     def clearFlight(self):
         self.canvas.delete('all')
-        print('shheesh')
+        self.coordinates = []
 
     # action when mouse click is released
     def onRelease(self, event):
-        global ob_flag
         
-        # if ob_flag: 
-        #     ob_flag = False
-        # else:
-        #     self.client.get_coordinates(self.coordinates)
-        #     print(self.coordinates)
-        #     self.coordinates = []
+        # convert coordinates and flush pixel coordinates
         self.convert_coordinates()
-        print(self.flight_coordinates)
         self.coordinates = []
         
     # action when mouse is clicked
     def savePosn(self, event):
-        global lastx, lasty, ob_flag
+        global lastx, lasty
         
         # verify position is in canvas
-        if (0 < event.x < canvas_width + (overall_padding*2) - 1) and (0 < event.y < canvas_height + (overall_padding*2) - 1):
-            lastx, lasty = event.x, event.y
-            self.coordinates.append((event.x, event.y))
-        else:
-            self.onRelease(None)
-            ob_flag = True
+        lastx, lasty = event.x, event.y
+        self.coordinates.append((event.x, event.y))
 
     # action when mouse is dragged
     def addLine(self, event):
+        
+        # boundary check, x
+        if overall_padding > event.x: event.x = overall_padding
+        elif event.x > canvas_width: event.x = canvas_width
+        
+        # boundary check, y
+        if overall_padding > event.y: event.y = overall_padding
+        elif event.y > canvas_height: event.y = canvas_height
+        
+        # draw line and save position
         self.canvas.create_line((lastx, lasty, event.x, event.y))
         self.savePosn(event)
         

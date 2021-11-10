@@ -8,7 +8,6 @@ from cflib.crazyflie.log import LogConfig
 
 # Specify the uri of the drone to which we want to connect (if your radio
 # channel is X, the uri should be 'radio://0/X/2M/E7E7E7E7E7')
-uri = 'radio://0/58/2M/E7E7E7E7E7'
 
 # Specify the variables we want to log (all at 100 Hz)
 variables = [
@@ -43,26 +42,31 @@ variables = [
 
 
 class SimpleClient:
-    def __init__(self, uri, use_controller=False, use_observer=False, channel=58):
+    def __init__(self, use_controller=False, use_observer=False, channel=58):
         # Initialize everything
         logging.basicConfig(level=logging.ERROR)
         cflib.crtp.init_drivers()
-        self.uri = uri.replace('[channel]', f'{channel}')
+        self.uri = 'radio://0/[channel]/2M/E7E7E7E7E7'.replace('[channel]', f'{channel}')
         self.init_time = time.time()
         self.use_controller = use_controller
         self.use_observer = use_observer
+        self.is_connected = False
+        self.data = {}
+        
+    def connect(self):
+        
+        # connect to drone
         self.cf = Crazyflie(rw_cache='./cache')
         self.cf.connected.add_callback(self.connected)
         self.cf.connection_failed.add_callback(self.connection_failed)
         self.cf.connection_lost.add_callback(self.connection_lost)
         self.cf.disconnected.add_callback(self.disconnected)
         print(f'Connecting to {self.uri}')
-        self.cf.open_link(self.uri)
-        self.is_connected = False
-        self.data = {}
-        # self.connect()
+        self.cf.open_link(self.uri)   
+
+    def connect_wait(self):
         
-    def connect(self):
+        # wait until connected to drone
         while not self.is_connected:
             print(f' ... connecting ...')
             time.sleep(1.0)
@@ -168,15 +172,19 @@ class SimpleClient:
         
     # TODO: Erika
     def flight(self, coordinates):
+        
+        # wait to connect to drone
+        self.connect_wait()
         # import runFlight from the GUI
         # loop through each tuple
         self.take_off()
-        for i,tuple in enumerate(coordinates):
-            x = tuple[0]
-            y = tuple[1]
+        for i, position in enumerate(coordinates):
+            x = position[0]
+            y = position[1]
             z = 0.5 # current constant
             if i == 0:
                 self.move_smooth([0.0, 0.0, 0.5], [x,y,z], 0.0, 1.0)
+                continue
             self.move(x,y,z, 0, 0.02)
             # reach last tuple, set up to move back to
         self.move_smooth([x,y,z], [0.0, 0.0, 0.5], 0.0, 2.0)
