@@ -3,12 +3,12 @@ from tkinter import filedialog
 from tkinter import ttk
 from tkinter import messagebox
 from copy import deepcopy
-# import main
+import numpy as np
 
 # sizing properties
 window_width  = 500
 window_height = 400
-canvas_width = 500
+canvas_width = 300
 canvas_height = 300
 
 # padding properties
@@ -94,17 +94,20 @@ class Applet(Tk):
     def createDataSave(self):
         pass
     
+    def convert_coordinates(self):
+        # call to the gui for translated coordinates
+        # run get_coordinates
+        self.flight_coordinates = np.divide(self.coordinates, canvas_width)
+        # rescale to whatever relevant physical situation
+        flight_zone = 0.5 # client.move interprets meters
+        self.flight_coordinates *= flight_zone
+        # client.move smooth returns home in client code!
+
     # action when 'Flight' button is clicked
     def runFlight(self):
         # normalize based on the window size
-        self.coordinates = np.divide(self.coordinates, canvas_width)
-        # rescale to whatever relevant physical situation
-        flight_zone = 1.5 # client.move interprets meters
-        self.coordinates *= flight_zone
-        # client.move smooth returns home in client code!
-        new_coordinates = self.coordinates
-        return new_coordinates
-
+        self.client.flight(self.flight_coordinates)
+        
     # action when 'Clear' button is clicked
     def clearFlight(self):
         self.canvas.delete('all')
@@ -114,12 +117,15 @@ class Applet(Tk):
     def onRelease(self, event):
         global ob_flag
         
-        if ob_flag: 
-            ob_flag = False
-        else:
-            self.client.get_coordinates(self.coordinates)
-            print(self.coordinates)
-            self.coordinates = []
+        # if ob_flag: 
+        #     ob_flag = False
+        # else:
+        #     self.client.get_coordinates(self.coordinates)
+        #     print(self.coordinates)
+        #     self.coordinates = []
+        self.convert_coordinates()
+        print(self.flight_coordinates)
+        self.coordinates = []
         
     # action when mouse is clicked
     def savePosn(self, event):
