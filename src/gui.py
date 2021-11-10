@@ -54,16 +54,36 @@ class Applet(Tk):
     
     # create mode selection dropdown
     def createModeSelection(self):
-        self.modeSelectionButton = ttk.Button(self, text="Mode Selection", command=self.runFlight)
-        self.modeSelectionButton.place(x=0, y=0)
-        self.modeSelectionButton.grid(column=0, row=0, padx=overall_padding, pady=overall_padding)
+        
+        # create mode selection frame
+        self.modeSelectionFrame = ttk.LabelFrame(self, text="Mode Selection",)
+        self.modeSelectionFrame.grid(column=0, row=0, padx=overall_padding, pady=overall_padding)
+        
+        # set default mode
+        self.modes = ["copycat", "spellcaster", "live"]
+        self.mode = StringVar()
+        self.mode.set(self.modes[0])
+        
+        # create dropdown menu
+        ttk.OptionMenu(self.modeSelectionFrame, self.mode, *self.modes).pack()
     
     # create plane selection
     def createPlaneSelection(self):
-        self.planeSelectionButton = ttk.Button(self, text="Plane Selection", command=self.runFlight)
-        self.planeSelectionButton.place(x=0, y=0)
-        self.planeSelectionButton.grid(column=0, row=1, padx=overall_padding, pady=overall_padding)
-
+        
+        # create plane selection frame
+        self.planeSelectionFrame = ttk.LabelFrame(self, text="Plane Selection")
+        self.planeSelectionFrame.grid(column=0, row=1, padx=overall_padding, pady=overall_padding)
+        
+        # set default plane
+        planes = ['XY', 'XZ', 'YZ']
+        self.plane = StringVar()
+        self.plane.set(planes[0])
+        
+        # create radio buttons
+        ttk.Radiobutton(self.planeSelectionFrame, text=planes[0], variable=self.plane, value=planes[0]).pack()
+        ttk.Radiobutton(self.planeSelectionFrame, text=planes[1], variable=self.plane, value=planes[1]).pack()
+        ttk.Radiobutton(self.planeSelectionFrame, text=planes[2], variable=self.plane, value=planes[2]).pack()
+        
     # create clear button
     def createClear(self):
         self.clearSelectionButton = ttk.Button(self, text="Clear", command=self.clearFlight)
