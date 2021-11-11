@@ -4,6 +4,7 @@ from tkinter import ttk
 from tkinter import messagebox
 from copy import deepcopy
 import numpy as np
+import time
 
 # sizing properties
 window_width  = 500
@@ -27,10 +28,12 @@ class Applet(Tk):
         self.minsize(width=window_width, height=window_height)
         self.configure(background='grey')
         self.coordinates = []
+        self.dts = []
+        self.prev_time = time.time()
         
         # create all the objects
         self.createCanvas()
-        self.createFlightControlButtons()
+        self.createFlightControl()
         self.createModeSelection()
         self.createPlaneSelection()
         self.createClear()
@@ -44,7 +47,7 @@ class Applet(Tk):
         self.canvas.bind("<ButtonRelease-1>", self.onRelease)
         
     # create flight control buttons
-    def createFlightControlButtons(self):
+    def createFlightControl(self):
         
         # create flight control frame
         self.flightControlFrame = ttk.Frame(self)
@@ -57,6 +60,10 @@ class Applet(Tk):
         # create flight button
         self.flightButton = ttk.Button(self.flightControlFrame, text="Run Flight", command=self.runFlight)
         self.flightButton.grid(column=0, row=1, padx=overall_padding, pady=overall_padding)
+        
+        # create abort button
+        self.abortButton = ttk.Button(self.flightControlFrame, text="Abort")
+        self.abortButton.grid(column=0, row=2, padx=overall_padding, pady=overall_padding)
     
     # create mode selection dropdown
     def createModeSelection(self):
@@ -107,13 +114,14 @@ class Applet(Tk):
         # run get_coordinates
         self.flight_coordinates = np.divide(self.coordinates, canvas_width)
         # rescale to whatever relevant physical situation
-        flight_zone = 0.5 # client.move interprets meters
+        flight_zone = 2.5 # client.move interprets meters
         self.flight_coordinates *= flight_zone
         # client.move smooth returns home in client code!
 
     # action when 'Flight' button is clicked
     def runFlight(self):
-        self.client.flight(self.flight_coordinates)
+        self.client.flight(self.flight_coordinates, self.dts)
+        self.dts = []
         
     # action when 'Clear' button is clicked
     def clearFlight(self):
@@ -130,10 +138,14 @@ class Applet(Tk):
     # action when mouse is clicked
     def savePosn(self, event):
         global lastx, lasty
-        
+            
         # verify position is in canvas
         lastx, lasty = event.x, event.y
         self.coordinates.append((event.x, event.y))
+        self.dts.append(time.time()-self.prev_time)                         
+        
+        # get the time between each event
+        self.prev_time = time.time()
 
     # action when mouse is dragged
     def addLine(self, event):

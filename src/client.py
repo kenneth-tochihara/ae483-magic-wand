@@ -171,7 +171,7 @@ class SimpleClient:
             json.dump(self.data, outfile, indent=4, sort_keys=False)
         
     # TODO: Erika
-    def flight(self, coordinates):
+    def flight(self, coordinates, dts):
         
         # wait to connect to drone
         self.connect_wait()
@@ -179,15 +179,16 @@ class SimpleClient:
         # loop through each tuple
         self.take_off()
         for i, position in enumerate(coordinates):
-            x = position[0]
-            y = position[1]
+            x = position[1]
+            y = position[0]
             z = 0.5 # current constant
+            dt = dts[i]
             if i == 0:
-                self.move_smooth([0.0, 0.0, 0.5], [x,y,z], 0.0, 1.0)
+                self.move_smooth([0.0, 0.0, 0.5], [x,y,z], 0.0, 4.0)
                 continue
-            self.move(x,y,z, 0, 0.02)
+            self.move(x,y,z, 0, dt)
             # reach last tuple, set up to move back to
-        self.move_smooth([x,y,z], [0.0, 0.0, 0.5], 0.0, 2.0)
+        self.move_smooth([x,y,z], [0.0, 0.0, 0.5], 0.0, 4.0)
         self.land()
         # record normalized coordinates from GUI runFlight
         # maybe: real_coordinates = runFlight()
