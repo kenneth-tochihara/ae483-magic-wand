@@ -5,6 +5,7 @@ from tkinter import messagebox
 from copy import deepcopy
 import numpy as np
 import time
+import json
 
 # sizing properties
 window_width  = 500
@@ -161,7 +162,30 @@ class Applet(Tk):
         # draw line and save position
         self.canvas.create_line((lastx, lasty, event.x, event.y))
         self.savePosn(event)
-        
+
+    def json_load(filename):
+    # load raw data
+        with open(filename, 'r') as f:
+            data = json.load(f)
+
+        # convert lists to numpy arrays
+        for val in data.values():
+            for key in val.keys():
+                val[key] = np.array(val[key])
+
+    def graph_data(self):
+        print(self.client.data)
+        # t = data['time']
+
+        # # states
+        # o_x = data['stateEstimate.x']
+        # o_y = data['stateEstimate.y']
+
+        # i = 0
+        # for i in range(len(o_x)):
+
+        #     self.canvas.create_line(o_x[i],o_y[i],o_x[i+1],o_y[i+1])
+        #     i += 1
 
 if __name__ == '__main__':
     app = Applet()
