@@ -5,6 +5,7 @@ from tkinter import messagebox
 from copy import deepcopy
 import numpy as np
 import time
+from flight import *
 
 # sizing properties
 window_width  = 500
@@ -17,11 +18,10 @@ overall_padding = 5
 
 class Applet(Tk):
 
-    def __init__(self, client):
+    def __init__(self):
 
         # initialize applet parent object
         super(Applet, self).__init__()
-        self.client = client
         
         # top level properties
         self.title("Magic Wand")
@@ -30,6 +30,9 @@ class Applet(Tk):
         self.coordinates = []
         self.dts = []
         self.prev_time = time.time()
+        self.flight_zone = 2.5
+        self.channel = 58 
+        self.client = SimpleClient(use_controller=False, use_observer=False, channel=self.channel)
         
         # create all the objects
         self.createCanvas()
@@ -52,18 +55,35 @@ class Applet(Tk):
         # create flight control frame
         self.flightControlFrame = ttk.Frame(self)
         self.flightControlFrame.grid(column=1, row=2, padx=overall_padding, pady=overall_padding)
-        
-        # create connect button
-        self.connectButton = ttk.Button(self.flightControlFrame, text="Connect", command=self.client.connect)
-        self.connectButton.grid(column=0, row=0, padx=overall_padding, pady=overall_padding)
     
         # create flight button
         self.flightButton = ttk.Button(self.flightControlFrame, text="Run Flight", command=self.runFlight)
-        self.flightButton.grid(column=0, row=1, padx=overall_padding, pady=overall_padding)
+        self.flightButton.grid(column=0, row=0, padx=overall_padding, pady=overall_padding)
         
         # create abort button
         self.abortButton = ttk.Button(self.flightControlFrame, text="Abort")
-        self.abortButton.grid(column=0, row=2, padx=overall_padding, pady=overall_padding)
+        self.abortButton.grid(column=0, row=1, padx=overall_padding, pady=overall_padding)
+
+        # create connect button
+        self.connectButton = ttk.Button(self.flightControlFrame, text="Connect", command=self.connectClient)
+        self.connectButton.grid(column=1, row=0, padx=overall_padding, pady=overall_padding)
+        
+        # text input for channel selection
+        self.channel_label = ttk.Label(self.flightControlFrame, text="Channel")
+        self.channel_label.grid(column=2, row=0, padx=overall_padding, pady=overall_padding)
+        self.channel = IntVar()
+        ttk.Entry(self.flightControlFrame, textvariable=self.channel).grid(column=3, row=0, padx=overall_padding, pady=overall_padding)
+        
+        # text input for square width
+        self.flight_zone_label = ttk.Label(self.flightControlFrame, text="Flight Zone (m)")
+        self.flight_zone_label.grid(column=2, row=1, padx=overall_padding, pady=overall_padding)
+        self.flight_zone = float()
+        ttk.Entry(self.flightControlFrame, textvariable=self.flight_zone).grid(column=3, row=1, padx=overall_padding, pady=overall_padding)
+        
+        # text input for connection status
+        self.connection_status_label = ttk.Label(self.flightControlFrame, text=f'{self.client.is_connected}')
+        self.connection_status_label.grid(column=4, row=0, padx=overall_padding, pady=overall_padding)
+
     
     # create mode selection dropdown
     def createModeSelection(self):
@@ -109,14 +129,17 @@ class Applet(Tk):
     def createDataSave(self):
         pass
     
+    # action when 'Connect' button is clicked
+    def connectClient(self):
+        self.client = SimpleClient(use_controller=False, use_observer=False, channel=self.channel.get())
+        self.client.connect()
+    
+    # call to the gui for translated coordinates
     def convert_coordinates(self):
-        # call to the gui for translated coordinates
-        # run get_coordinates
-        self.flight_coordinates = np.divide(self.coordinates, canvas_width)
+
         # rescale to whatever relevant physical situation
-        flight_zone = 2.5 # client.move interprets meters
-        self.flight_coordinates *= flight_zone
-        # client.move smooth returns home in client code!
+        self.flight_coordinates = np.divide(self.coordinates, canvas_width)
+        self.flight_coordinates *= self.flight_zone.get()
 
     # action when 'Flight' button is clicked
     def runFlight(self):

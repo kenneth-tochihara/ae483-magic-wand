@@ -44,7 +44,7 @@ variables = [
 
 
 class SimpleClient:
-    def __init__(self, uri, use_controller=False, use_observer=False, channel=58):
+    def __init__(self, use_controller=False, use_observer=False, channel=58):
         # Initialize everything
         logging.basicConfig(level=logging.ERROR)
         cflib.crtp.init_drivers()
