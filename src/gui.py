@@ -12,6 +12,7 @@ window_width  = 500
 window_height = 400
 canvas_width = 300
 canvas_height = 300
+flight_zone = 2.5 # m
 
 # padding properties
 overall_padding = 5
@@ -110,7 +111,7 @@ class Applet(Tk):
     def createDataSave(self):
         pass
     
-    def convert_coordinates(self):
+    def convert_pixel_to_world(self):
         # call to the gui for translated coordinates
         # run get_coordinates
         self.flight_coordinates = np.divide(self.coordinates, canvas_width)
@@ -118,11 +119,40 @@ class Applet(Tk):
         flight_zone = 2.5 # client.move interprets meters
         self.flight_coordinates *= flight_zone
         # client.move smooth returns home in client code!
+        
+    def convert_world_to_pixel(self):
+        
+        # convert from canvas pixels to world coordinates
+        self.flight_coordinates = np.divide(self.coordinates, canvas_width/flight_zone)
 
     # action when 'Flight' button is clicked
     def runFlight(self):
         self.client.flight(self.flight_coordinates, self.dts)
         self.dts = []
+        # print(type(self.client.data['stateEstimate.x']))
+        print(self.client.data['stateEstimate.x']['data'])
+        self.postFlight()
+        
+    def postFlight(self):
+        
+        # convert to flight coordinates tuples
+        self.flight_coordinates = []
+        for idx in range(len(self.client.data['stateEstimate.x']['data'])):
+            self.flight_coordinates.append((self.client.data['stateEstimate.x']['data'][idx], 
+                                            self.client.data['stateEstimate.y']['data'][idx]))
+        
+        # obtain o_x, o_y and convert to pixels
+        self.flight_coordinates = np.divide(self.flight_coordinates, flight_zone/canvas_width) 
+        self.flight_coordinates = [(int(x[0]), int(x[1])) for x in self.flight_coordinates]
+        print(self.flight_coordinates)
+        
+        # plot data onto canvas
+        lastx, lasty = self.flight_coordinates[0][0], self.flight_coordinates[0][1]
+        for coord in self.flight_coordinates[1:]:
+            self.canvas.create_line((lastx, lasty, coord[0], coord[1]))
+            
+        
+        pass
         
     # action when 'Clear' button is clicked
     def clearFlight(self):
@@ -133,7 +163,7 @@ class Applet(Tk):
     def onRelease(self, event):
         
         # convert coordinates and flush pixel coordinates
-        self.convert_coordinates()
+        self.convert_pixel_to_world()
         self.coordinates = []
         
     # action when mouse is clicked
