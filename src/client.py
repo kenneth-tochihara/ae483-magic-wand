@@ -197,9 +197,11 @@ class SimpleClient:
             dt = .1*dts[i]
             if i == 0:
                 self.move_smooth([0.0, 0.0, 0.5], [x,y,z], 0.0, 4.0)
+                self.data['start_time'] = self.data['stateEstimate.x']['time'][-1]
                 continue
             self.move(x,y,z, 0, dt)
             # reach last tuple, set up to move back to
+        self.data['end_time'] = self.data['stateEstimate.x']['time'][-1]
         self.move_smooth([x,y,z], [0.0, 0.0, 0.5], 0.0, 4.0)
         self.land()
         # record normalized coordinates from GUI runFlight
@@ -213,6 +215,7 @@ class SimpleClient:
         # Take off and hover (with zero yaw)
         self.move(0.0, 0.0, 0.15, 0.0, 1.0)
         self.move(0.0, 0.0, 0.50, 0.0, 1.0)
+        
         
     def land(self):
         
