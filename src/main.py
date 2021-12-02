@@ -1,5 +1,4 @@
 # import copycat
-from client import *
 from gui import *
 # import spellcaster
 

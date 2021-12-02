@@ -187,9 +187,6 @@ class SimpleClient:
         
     # TODO: Erika
     def flight(self, coordinates, dts):
-        
-        # check that drone is connected
-        self.connect_wait()
 
         # begin flight
         self.take_off()
@@ -236,7 +233,7 @@ class SimpleClient:
 
         # Disconnect from drone
         self.disconnect()
-        self.write_data('hardware_data.json')
+        self.write_data('src/hardware_data.json')
         
 
 if __name__ == '__main__':

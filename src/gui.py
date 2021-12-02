@@ -6,13 +6,13 @@ from copy import deepcopy
 import numpy as np
 import time
 from client import *
+from threading import Thread
 
 # sizing properties
 window_width  = 500
 window_height = 400
 canvas_width = 300
 canvas_height = 300
-flight_zone = 2.5 # m
 
 # padding properties
 overall_padding = 5
@@ -29,11 +29,10 @@ class Applet(Tk):
         self.minsize(width=window_width, height=window_height)
         self.configure(background='grey')
         self.coordinates = []
+        self.flight_coordinates = []
         self.dts = []
         self.prev_time = time.time()
-        self.flight_zone = 2.5
-        self.channel = 58 
-        # self.client = SimpleClient(use_controller=False, use_observer=False, channel=self.channel)
+        self.abort = False
         
         # create all the objects
         self.createCanvas()
@@ -41,6 +40,9 @@ class Applet(Tk):
         self.createModeSelection()
         self.createPlaneSelection()
         self.createClear()
+        
+        # create client
+        self.client = SimpleClient(use_controller=False, use_observer=False, channel=self.channel.get())
         
     # create canvas section
     def createCanvas(self):
@@ -72,13 +74,13 @@ class Applet(Tk):
         # text input for channel selection
         self.channel_label = ttk.Label(self.flightControlFrame, text="Channel")
         self.channel_label.grid(column=2, row=0, padx=overall_padding, pady=overall_padding)
-        self.channel = IntVar()
+        self.channel = IntVar(value=58)
         ttk.Entry(self.flightControlFrame, textvariable=self.channel).grid(column=3, row=0, padx=overall_padding, pady=overall_padding)
         
         # text input for square width
         self.flight_zone_label = ttk.Label(self.flightControlFrame, text="Flight Zone (m)")
         self.flight_zone_label.grid(column=2, row=1, padx=overall_padding, pady=overall_padding)
-        self.flight_zone = float()
+        self.flight_zone = StringVar(value='2.5')
         ttk.Entry(self.flightControlFrame, textvariable=self.flight_zone).grid(column=3, row=1, padx=overall_padding, pady=overall_padding)
         
         # text input for connection status
@@ -138,30 +140,48 @@ class Applet(Tk):
         self.client.connect()
         self.is_connected.set(str(self.client.is_connected))
 
+    # convert from world coordinates to canvas pixels
     def convert_pixel_to_world(self):
-        
-        # convert from world coordinates to canvas pixels
-        self.flight_coordinates = np.divide(self.coordinates, canvas_width/flight_zone)
+        self.flight_coordinates = np.divide(self.coordinates, canvas_width/float(self.flight_zone.get()))
 
+    # convert from canvas pixels to world coordinates, typecast as integers as well
     def convert_world_to_pixel(self):
-        
-        # convert from canvas pixels to world coordinates, typecast as integers as well
-        self.flight_data = np.divide(self.flight_data, flight_zone/canvas_width)
+        self.flight_data = np.divide(self.flight_data, float(self.flight_zone.get())/canvas_width)
         self.flight_data = [(int(x[1]), int(x[0])) for x in self.flight_data]
 
     # action when 'Flight' button is clicked
     def runFlight(self):
-        self.client.flight(self.flight_coordinates, self.dts)
+        
+        # make sure we got coordinates and are connected
+        if (len(self.flight_coordinates) == 0) or (not self.client.is_connected):
+            return
+        
+        # run the flight thread
+        self.flight_thread = Thread(target = self.client.flight, args = (self.flight_coordinates, self.dts))
+        self.flight_thread.start()        
+        self.flight_thread.join()
         self.dts = []
+        
+        # check if flight aborted
+        if self.abort:
+            return
+        
+        # run post-flight procedures
         self.postFlight()
+        self.abort = False
     
     # action when 'Abort' button is clicked
     def abortFlight(self):
-        # self.client.cf.close_link()   
-        pass
+        self.client.cf.close_link()
+        self.flight_thread.join()
+        self.abort = True
         
     # action after landing
     def postFlight(self):
+        
+        # make sure flight wasn't aborted
+        if self.abort:
+            return
         
         # convert to flight coordinates tuples
         self.flight_data = []
