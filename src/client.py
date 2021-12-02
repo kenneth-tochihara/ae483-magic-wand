@@ -74,18 +74,19 @@ class SimpleClient:
         self.cf.disconnected.add_callback(self.disconnected)
         print(f'Connecting to {self.uri}')
         self.cf.open_link(self.uri)   
+        self.connect_wait()
 
     def connect_wait(self):
         
-        # wait until connected to drone
-        while not self.is_connected:
-            print(f' ... connecting ...')
+        # wait until connected to drone or its been 5 seconds
+        for _idx in range(5):
+            if self.is_connected: break
+            print(f' ... connecting ..')
             time.sleep(1.0)
 
     def connected(self, uri):
         print(f'Connected to {uri}')
         self.is_connected = True
-
         # Start logging
         self.logconfs = []
         self.logconfs.append(LogConfig(name=f'LogConf0', period_in_ms=10))
@@ -130,9 +131,11 @@ class SimpleClient:
 
     def connection_failed(self, uri, msg):
         print(f'Connection to {uri} failed: {msg}')
+        self.is_connected = False
 
     def connection_lost(self, uri, msg):
         print(f'Connection to {uri} lost: {msg}')
+        self.is_connected = False
 
     def disconnected(self, uri):
         print(f'Disconnected from {uri}')
@@ -185,27 +188,32 @@ class SimpleClient:
     # TODO: Erika
     def flight(self, coordinates, dts):
         
-        # wait to connect to drone
+        # check that drone is connected
         self.connect_wait()
-        # import runFlight from the GUI
-        # loop through each tuple
+
+        # begin flight
         self.take_off()
         for i, position in enumerate(coordinates):
+            
+            # parse coordinates and time deltas
             x = position[1]
             y = position[0]
             z = 0.5 # current constant
             dt = .1*dts[i]
+            
+            # if it's the first position, make a smooth move
             if i == 0:
                 self.move_smooth([0.0, 0.0, 0.5], [x,y,z], 0.0, 4.0)
                 self.data['start_time'] = self.data['stateEstimate.x']['time'][-1]
                 continue
+            
+            # move to next pixel coordinates
             self.move(x,y,z, 0, dt)
-            # reach last tuple, set up to move back to
+            
+        # end the flight
         self.data['end_time'] = self.data['stateEstimate.x']['time'][-1]
         self.move_smooth([x,y,z], [0.0, 0.0, 0.5], 0.0, 4.0)
         self.land()
-        # record normalized coordinates from GUI runFlight
-        # maybe: real_coordinates = runFlight()
         
     def take_off(self):
         

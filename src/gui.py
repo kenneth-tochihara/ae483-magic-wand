@@ -5,7 +5,7 @@ from tkinter import messagebox
 from copy import deepcopy
 import numpy as np
 import time
-import json
+from client import *
 
 # sizing properties
 window_width  = 500
@@ -19,11 +19,10 @@ overall_padding = 5
 
 class Applet(Tk):
 
-    def __init__(self, client):
+    def __init__(self):
 
         # initialize applet parent object
         super(Applet, self).__init__()
-        self.client = client
         
         # top level properties
         self.title("Magic Wand")
@@ -32,6 +31,9 @@ class Applet(Tk):
         self.coordinates = []
         self.dts = []
         self.prev_time = time.time()
+        self.flight_zone = 2.5
+        self.channel = 58 
+        # self.client = SimpleClient(use_controller=False, use_observer=False, channel=self.channel)
         
         # create all the objects
         self.createCanvas()
@@ -54,19 +56,37 @@ class Applet(Tk):
         # create flight control frame
         self.flightControlFrame = ttk.Frame(self)
         self.flightControlFrame.grid(column=1, row=2, padx=overall_padding, pady=overall_padding)
-        
-        # create connect button
-        self.connectButton = ttk.Button(self.flightControlFrame, text="Connect", command=self.client.connect)
-        self.connectButton.grid(column=0, row=0, padx=overall_padding, pady=overall_padding)
     
         # create flight button
         self.flightButton = ttk.Button(self.flightControlFrame, text="Run Flight", command=self.runFlight)
-        self.flightButton.grid(column=0, row=1, padx=overall_padding, pady=overall_padding)
+        self.flightButton.grid(column=0, row=0, padx=overall_padding, pady=overall_padding)
         
         # create abort button
-        self.abortButton = ttk.Button(self.flightControlFrame, text="Abort")
-        self.abortButton.grid(column=0, row=2, padx=overall_padding, pady=overall_padding)
-    
+        self.abortButton = ttk.Button(self.flightControlFrame, text="Abort", command=self.abortFlight)
+        self.abortButton.grid(column=0, row=1, padx=overall_padding, pady=overall_padding)
+
+        # create connect button
+        self.connectButton = ttk.Button(self.flightControlFrame, text="Connect", command=self.connectClient)
+        self.connectButton.grid(column=1, row=0, padx=overall_padding, pady=overall_padding)
+        
+        # text input for channel selection
+        self.channel_label = ttk.Label(self.flightControlFrame, text="Channel")
+        self.channel_label.grid(column=2, row=0, padx=overall_padding, pady=overall_padding)
+        self.channel = IntVar()
+        ttk.Entry(self.flightControlFrame, textvariable=self.channel).grid(column=3, row=0, padx=overall_padding, pady=overall_padding)
+        
+        # text input for square width
+        self.flight_zone_label = ttk.Label(self.flightControlFrame, text="Flight Zone (m)")
+        self.flight_zone_label.grid(column=2, row=1, padx=overall_padding, pady=overall_padding)
+        self.flight_zone = float()
+        ttk.Entry(self.flightControlFrame, textvariable=self.flight_zone).grid(column=3, row=1, padx=overall_padding, pady=overall_padding)
+        
+        # text input for connection status
+        self.is_connected = StringVar()
+        self.is_connected.set(str(False))
+        self.connection_status_label = ttk.Label(self.flightControlFrame, textvariable=self.is_connected)
+        self.connection_status_label.grid(column=4, row=0, padx=overall_padding, pady=overall_padding)
+ 
     # create mode selection dropdown
     def createModeSelection(self):
         
@@ -111,6 +131,13 @@ class Applet(Tk):
     def createDataSave(self):
         pass
     
+    # action when 'Connect' button is clicked
+    def connectClient(self):
+        self.client = SimpleClient(use_controller=False, use_observer=False, channel=self.channel.get())
+        self.is_connected.set(str(self.client.is_connected))
+        self.client.connect()
+        self.is_connected.set(str(self.client.is_connected))
+
     def convert_pixel_to_world(self):
         
         # convert from world coordinates to canvas pixels
@@ -127,21 +154,26 @@ class Applet(Tk):
         self.client.flight(self.flight_coordinates, self.dts)
         self.dts = []
         self.postFlight()
+    
+    # action when 'Abort' button is clicked
+    def abortFlight(self):
+        # self.client.cf.close_link()   
+        pass
         
+    # action after landing
     def postFlight(self):
         
         # convert to flight coordinates tuples
         self.flight_data = []
         for idx in range(len(self.client.data['stateEstimate.x']['data'])):
             
+            # record data if timestamp is within plotted location
             if self.client.data['start_time'] < self.client.data['stateEstimate.x']['time'][idx] < self.client.data['end_time']:
-                self.flight_data.append((self.client.data['stateEstimate.x']['data'][idx], 
-                                         self.client.data['stateEstimate.y']['data'][idx]))
+                self.flight_data.append((self.client.data['stateEstimate.x']['data'][idx], self.client.data['stateEstimate.y']['data'][idx]))
         
         # obtain o_x, o_y and convert to pixels
         self.convert_world_to_pixel()
-        print(self.flight_data)
-        
+                
         # plot data onto canvas
         lastx, lasty = self.flight_data[0][0], self.flight_data[0][1]
         for coord in self.flight_data[1:]:
