@@ -6,13 +6,13 @@ from copy import deepcopy
 import numpy as np
 import time
 from client import *
-import threading
 
 # sizing properties
 window_width  = 500
 window_height = 400
 canvas_width = 300
 canvas_height = 300
+flight_zone = 2.5 # m
 
 # padding properties
 overall_padding = 5
@@ -137,24 +137,49 @@ class Applet(Tk):
         self.is_connected.set(str(self.client.is_connected))
         self.client.connect()
         self.is_connected.set(str(self.client.is_connected))
-    
-    # call to the gui for translated coordinates
-    def convert_coordinates(self):
 
-        # rescale to whatever relevant physical situation
-        self.flight_coordinates = np.divide(self.coordinates, canvas_width)
-        self.flight_coordinates *= self.flight_zone.get()
+    def convert_pixel_to_world(self):
+        
+        # convert from world coordinates to canvas pixels
+        self.flight_coordinates = np.divide(self.coordinates, canvas_width/flight_zone)
+
+    def convert_world_to_pixel(self):
+        
+        # convert from canvas pixels to world coordinates, typecast as integers as well
+        self.flight_data = np.divide(self.flight_data, flight_zone/canvas_width)
+        self.flight_data = [(int(x[1]), int(x[0])) for x in self.flight_data]
 
     # action when 'Flight' button is clicked
     def runFlight(self):
         self.client.flight(self.flight_coordinates, self.dts)
         self.dts = []
+        self.postFlight()
     
     # action when 'Abort' button is clicked
     def abortFlight(self):
-        # self.client.cf.close_link()
+        # self.client.cf.close_link()   
         pass
-      
+        
+    # action after landing
+    def postFlight(self):
+        
+        # convert to flight coordinates tuples
+        self.flight_data = []
+        for idx in range(len(self.client.data['stateEstimate.x']['data'])):
+            
+            # record data if timestamp is within plotted location
+            if self.client.data['start_time'] < self.client.data['stateEstimate.x']['time'][idx] < self.client.data['end_time']:
+                self.flight_data.append((self.client.data['stateEstimate.x']['data'][idx], self.client.data['stateEstimate.y']['data'][idx]))
+        
+        # obtain o_x, o_y and convert to pixels
+        self.convert_world_to_pixel()
+                
+        # plot data onto canvas
+        lastx, lasty = self.flight_data[0][0], self.flight_data[0][1]
+        for coord in self.flight_data[1:]:
+            self.canvas.create_line(lastx, lasty, coord[0], coord[1], fill='green')
+            lastx, lasty = coord[0], coord[1]
+        
     # action when 'Clear' button is clicked
     def clearFlight(self):
         self.canvas.delete('all')
@@ -164,7 +189,7 @@ class Applet(Tk):
     def onRelease(self, event):
         
         # convert coordinates and flush pixel coordinates
-        self.convert_coordinates()
+        self.convert_pixel_to_world()
         self.coordinates = []
         
     # action when mouse is clicked
@@ -191,9 +216,9 @@ class Applet(Tk):
         elif event.y > canvas_height: event.y = canvas_height
         
         # draw line and save position
-        self.canvas.create_line((lastx, lasty, event.x, event.y))
+        self.canvas.create_line(lastx, lasty, event.x, event.y)
         self.savePosn(event)
-        
+
 
 if __name__ == '__main__':
     app = Applet()

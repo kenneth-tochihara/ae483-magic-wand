@@ -12,37 +12,48 @@ from cflib.crazyflie.log import LogConfig
 # Specify the variables we want to log (all at 100 Hz)
 variables = [
     # State estimates (stock code)
-    'ae483log.o_x',
-    'ae483log.o_y',
-    'ae483log.o_z',
-    'ae483log.psi',
-    'ae483log.theta',
-    'ae483log.phi',
-    'ae483log.v_x',
-    'ae483log.v_y',
-    'ae483log.v_z',
+    # 'ae483log.o_x',
+    # 'ae483log.o_y',
+    # 'ae483log.o_z',
+    # 'ae483log.psi',
+    # 'ae483log.theta',
+    # 'ae483log.phi',
+    # 'ae483log.v_x',
+    # 'ae483log.v_y',
+    # 'ae483log.v_z',
     # Measurements
-    'ae483log.w_x',
-    'ae483log.w_y',
-    'ae483log.w_z',
-    'ae483log.n_x',
-    'ae483log.n_y',
-    'ae483log.r',
-    'ae483log.a_z',
-    # Setpoint
-    'ae483log.o_x_des',
-    'ae483log.o_y_des',
-    'ae483log.o_z_des',
-    # Motor power commands
-    'ae483log.m_1',
-    'ae483log.m_2',
-    'ae483log.m_3',
-    'ae483log.m_4',
+    # 'ae483log.w_x',
+    # 'ae483log.w_y',
+    # 'ae483log.w_z',
+    # 'ae483log.n_x',
+    # 'ae483log.n_y',
+    # 'ae483log.r',
+    # 'ae483log.a_z',
+    # # Setpoint
+    # 'ae483log.o_x_des',
+    # 'ae483log.o_y_des',
+    # 'ae483log.o_z_des',
+    # # Motor power commands
+    # 'ae483log.m_1',
+    # 'ae483log.m_2',
+    # 'ae483log.m_3',
+    # 'ae483log.m_4',
+
+    # State estimates (default observer)
+    'stateEstimate.x',
+    'stateEstimate.y',
+    'stateEstimate.z',
+    'stateEstimate.yaw',
+    'stateEstimate.pitch',
+    'stateEstimate.roll',
+    'kalman.statePX',
+    'kalman.statePY',
+    'kalman.statePZ',
 ]
 
 
 class SimpleClient:
-    def __init__(self, use_controller=False, use_observer=False, channel=58):
+    def __init__(self, use_controller=False, use_observer=False, channel=34):
         # Initialize everything
         logging.basicConfig(level=logging.ERROR)
         cflib.crtp.init_drivers()
@@ -93,6 +104,7 @@ class SimpleClient:
                 logconf.data_received_cb.add_callback(self.log_data)
                 logconf.error_cb.add_callback(self.log_error)
                 logconf.start()
+                
             except KeyError as e:
                 print(f'Could not start {logconf.name} because {e}')
                 for v in logconf.variables:
@@ -176,25 +188,32 @@ class SimpleClient:
     # TODO: Erika
     def flight(self, coordinates, dts):
         
-        # wait to connect to drone
+        # check that drone is connected
         self.connect_wait()
-        # import runFlight from the GUI
-        # loop through each tuple
+
+        # begin flight
         self.take_off()
         for i, position in enumerate(coordinates):
+            
+            # parse coordinates and time deltas
             x = position[1]
             y = position[0]
             z = 0.5 # current constant
-            dt = dts[i]
+            dt = .1*dts[i]
+            
+            # if it's the first position, make a smooth move
             if i == 0:
                 self.move_smooth([0.0, 0.0, 0.5], [x,y,z], 0.0, 4.0)
+                self.data['start_time'] = self.data['stateEstimate.x']['time'][-1]
                 continue
+            
+            # move to next pixel coordinates
             self.move(x,y,z, 0, dt)
-            # reach last tuple, set up to move back to
+            
+        # end the flight
+        self.data['end_time'] = self.data['stateEstimate.x']['time'][-1]
         self.move_smooth([x,y,z], [0.0, 0.0, 0.5], 0.0, 4.0)
         self.land()
-        # record normalized coordinates from GUI runFlight
-        # maybe: real_coordinates = runFlight()
         
     def take_off(self):
         
@@ -204,6 +223,7 @@ class SimpleClient:
         # Take off and hover (with zero yaw)
         self.move(0.0, 0.0, 0.15, 0.0, 1.0)
         self.move(0.0, 0.0, 0.50, 0.0, 1.0)
+        
         
     def land(self):
         
@@ -216,6 +236,7 @@ class SimpleClient:
 
         # Disconnect from drone
         self.disconnect()
+        self.write_data('hardware_data.json')
         
 
 if __name__ == '__main__':
