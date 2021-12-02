@@ -63,18 +63,19 @@ class SimpleClient:
         self.cf.disconnected.add_callback(self.disconnected)
         print(f'Connecting to {self.uri}')
         self.cf.open_link(self.uri)   
+        self.connect_wait()
 
     def connect_wait(self):
         
-        # wait until connected to drone
-        while not self.is_connected:
-            print(f' ... connecting ...')
+        # wait until connected to drone or its been 5 seconds
+        for _idx in range(5):
+            if self.is_connected: break
+            print(f' ... connecting ..')
             time.sleep(1.0)
 
     def connected(self, uri):
         print(f'Connected to {uri}')
         self.is_connected = True
-
         # Start logging
         self.logconfs = []
         self.logconfs.append(LogConfig(name=f'LogConf0', period_in_ms=10))
@@ -118,9 +119,11 @@ class SimpleClient:
 
     def connection_failed(self, uri, msg):
         print(f'Connection to {uri} failed: {msg}')
+        self.is_connected = False
 
     def connection_lost(self, uri, msg):
         print(f'Connection to {uri} lost: {msg}')
+        self.is_connected = False
 
     def disconnected(self, uri):
         print(f'Disconnected from {uri}')

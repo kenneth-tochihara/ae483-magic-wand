@@ -5,7 +5,8 @@ from tkinter import messagebox
 from copy import deepcopy
 import numpy as np
 import time
-from flight import *
+from client import *
+import threading
 
 # sizing properties
 window_width  = 500
@@ -32,7 +33,7 @@ class Applet(Tk):
         self.prev_time = time.time()
         self.flight_zone = 2.5
         self.channel = 58 
-        self.client = SimpleClient(use_controller=False, use_observer=False, channel=self.channel)
+        # self.client = SimpleClient(use_controller=False, use_observer=False, channel=self.channel)
         
         # create all the objects
         self.createCanvas()
@@ -61,7 +62,7 @@ class Applet(Tk):
         self.flightButton.grid(column=0, row=0, padx=overall_padding, pady=overall_padding)
         
         # create abort button
-        self.abortButton = ttk.Button(self.flightControlFrame, text="Abort")
+        self.abortButton = ttk.Button(self.flightControlFrame, text="Abort", command=self.abortFlight)
         self.abortButton.grid(column=0, row=1, padx=overall_padding, pady=overall_padding)
 
         # create connect button
@@ -81,10 +82,11 @@ class Applet(Tk):
         ttk.Entry(self.flightControlFrame, textvariable=self.flight_zone).grid(column=3, row=1, padx=overall_padding, pady=overall_padding)
         
         # text input for connection status
-        self.connection_status_label = ttk.Label(self.flightControlFrame, text=f'{self.client.is_connected}')
+        self.is_connected = StringVar()
+        self.is_connected.set(str(False))
+        self.connection_status_label = ttk.Label(self.flightControlFrame, textvariable=self.is_connected)
         self.connection_status_label.grid(column=4, row=0, padx=overall_padding, pady=overall_padding)
-
-    
+ 
     # create mode selection dropdown
     def createModeSelection(self):
         
@@ -132,7 +134,9 @@ class Applet(Tk):
     # action when 'Connect' button is clicked
     def connectClient(self):
         self.client = SimpleClient(use_controller=False, use_observer=False, channel=self.channel.get())
+        self.is_connected.set(str(self.client.is_connected))
         self.client.connect()
+        self.is_connected.set(str(self.client.is_connected))
     
     # call to the gui for translated coordinates
     def convert_coordinates(self):
@@ -145,7 +149,12 @@ class Applet(Tk):
     def runFlight(self):
         self.client.flight(self.flight_coordinates, self.dts)
         self.dts = []
-        
+    
+    # action when 'Abort' button is clicked
+    def abortFlight(self):
+        # self.client.cf.close_link()
+        pass
+      
     # action when 'Clear' button is clicked
     def clearFlight(self):
         self.canvas.delete('all')
