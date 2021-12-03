@@ -6,7 +6,7 @@ from copy import deepcopy
 import numpy as np
 import time
 from client import *
-from threading import Thread
+from threading import Thread, active_count
 
 # sizing properties
 window_width  = 500
@@ -33,6 +33,8 @@ class Applet(Tk):
         self.dts = []
         self.prev_time = time.time()
         self.abort = False
+        self.flight_in_progress = False
+        self.flight_thread  = None
         
         # create all the objects
         self.createCanvas()
@@ -153,34 +155,34 @@ class Applet(Tk):
     def runFlight(self):
         
         # make sure we got coordinates and are connected
-        if (len(self.flight_coordinates) == 0) or (not self.client.is_connected):
+        if (len(self.flight_coordinates) == 0) or (len(self.dts) == 0) or (not self.client.is_connected):
             return
+        
+        # close the current thread if still open
+        if self.flight_thread is not None:
+            self.flight_thread.join()
         
         # run the flight thread
-        self.flight_thread = Thread(target = self.client.flight, args = (self.flight_coordinates, self.dts))
-        self.flight_thread.start()        
-        self.flight_thread.join()
-        self.dts = []
-        
-        # check if flight aborted
-        if self.abort:
-            return
-        
-        # run post-flight procedures
-        self.postFlight()
-        self.abort = False
+        self.flight_in_progress = True
+        self.flight_thread = Thread(target = self.client.flight, args = (self.flight_coordinates, self.dts, 
+                                                                         lambda : self.abort, self))
+        self.flight_thread.start()
     
     # action when 'Abort' button is clicked
     def abortFlight(self):
-        self.client.cf.close_link()
-        self.flight_thread.join()
-        self.abort = True
+        if self.flight_in_progress:
+            self.abort = True
         
     # action after landing
     def postFlight(self):
         
+        # flight is complete
+        self.dts = []
+        self.flight_in_progress = False
+        
         # make sure flight wasn't aborted
         if self.abort:
+            self.abort = False
             return
         
         # convert to flight coordinates tuples

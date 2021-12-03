@@ -186,7 +186,7 @@ class SimpleClient:
             json.dump(self.data, outfile, indent=4, sort_keys=False)
         
     # TODO: Erika
-    def flight(self, coordinates, dts):
+    def flight(self, coordinates, dts, abort, gui):
 
         # begin flight
         self.take_off()
@@ -197,6 +197,12 @@ class SimpleClient:
             y = position[0]
             z = 0.5 # current constant
             dt = .1*dts[i]
+            
+            # if abort flag raised, land
+            if abort():
+                self.land(x, y)
+                gui.postFlight()
+                return
             
             # if it's the first position, make a smooth move
             if i == 0:
@@ -210,7 +216,8 @@ class SimpleClient:
         # end the flight
         self.data['end_time'] = self.data['stateEstimate.x']['time'][-1]
         self.move_smooth([x,y,z], [0.0, 0.0, 0.5], 0.0, 4.0)
-        self.land()
+        self.land(0.0, 0.0)
+        gui.postFlight()
         
     def take_off(self):
         
@@ -222,11 +229,11 @@ class SimpleClient:
         self.move(0.0, 0.0, 0.50, 0.0, 1.0)
         
         
-    def land(self):
+    def land(self, x, y):
         
         # Go back to hover (with zero yaw) and prepare to land
-        self.move(0.0, 0.0, 0.50, 0.0, 1.0)
-        self.move(0.0, 0.0, 0.15, 0.0, 1.0)
+        self.move(x, y, 0.50, 0.0, 1.0)
+        self.move(x, y, 0.15, 0.0, 1.0)
 
         # Land
         self.stop(1.0)
