@@ -7,6 +7,8 @@ import numpy as np
 import time
 from client import *
 from threading import Thread, active_count
+from PIL import ImageGrab
+import os
 
 # sizing properties
 window_width  = 500
@@ -206,6 +208,13 @@ class Applet(Tk):
         for coord in self.flight_data[1:]:
             self.canvas.create_line(lastx, lasty, coord[0], coord[1], fill='green')
             lastx, lasty = coord[0], coord[1]
+            
+        # save flight data to directory
+        directory_name = "data/" + time.strftime("%Y%m%d-%H%M%S")
+        os.mkdir(directory_name)
+        os.replace("src/hardware_data.json", directory_name + "/hardware_data.json")
+        im = ImageGrab.grab()
+        im.save(directory_name + '/gui.png')
         
     # action when 'Clear' button is clicked
     def clearFlight(self):
