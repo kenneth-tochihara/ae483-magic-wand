@@ -11,8 +11,8 @@ from threading import Thread, active_count
 # sizing properties
 window_width  = 500
 window_height = 400
-canvas_width = 300
-canvas_height = 300
+canvas_width = 500
+canvas_height = 400
 
 # padding properties
 overall_padding = 5
@@ -39,12 +39,12 @@ class Applet(Tk):
         # create all the objects
         self.createCanvas()
         self.createFlightControl()
-        self.createModeSelection()
-        self.createPlaneSelection()
-        self.createClear()
+        # self.createModeSelection()
+        # self.createPlaneSelection()
+        # self.createClear()
         
         # create client
-        self.client = SimpleClient(use_controller=False, use_observer=False, channel=self.channel.get())
+        self.client = SimpleClient(use_controller=False, use_observer=True, channel=self.channel.get())
         
     # create canvas section
     def createCanvas(self):
@@ -67,29 +67,33 @@ class Applet(Tk):
         
         # create abort button
         self.abortButton = ttk.Button(self.flightControlFrame, text="Abort", command=self.abortFlight)
-        self.abortButton.grid(column=0, row=1, padx=overall_padding, pady=overall_padding)
+        self.abortButton.grid(column=1, row=1, padx=overall_padding, pady=overall_padding)
 
         # create connect button
         self.connectButton = ttk.Button(self.flightControlFrame, text="Connect", command=self.connectClient)
         self.connectButton.grid(column=1, row=0, padx=overall_padding, pady=overall_padding)
         
+        # create clear button
+        self.clearSelectionButton = ttk.Button(self.flightControlFrame, text="Clear", command=self.clearFlight)
+        self.clearSelectionButton.grid(column=0, row=1, padx=overall_padding, pady=overall_padding)
+        
         # text input for channel selection
         self.channel_label = ttk.Label(self.flightControlFrame, text="Channel")
-        self.channel_label.grid(column=2, row=0, padx=overall_padding, pady=overall_padding)
+        self.channel_label.grid(column=3, row=0, padx=overall_padding, pady=overall_padding)
         self.channel = IntVar(value=58)
-        ttk.Entry(self.flightControlFrame, textvariable=self.channel).grid(column=3, row=0, padx=overall_padding, pady=overall_padding)
+        ttk.Entry(self.flightControlFrame, textvariable=self.channel).grid(column=4, row=0, padx=overall_padding, pady=overall_padding)
         
         # text input for square width
         self.flight_zone_label = ttk.Label(self.flightControlFrame, text="Flight Zone (m)")
-        self.flight_zone_label.grid(column=2, row=1, padx=overall_padding, pady=overall_padding)
+        self.flight_zone_label.grid(column=3, row=1, padx=overall_padding, pady=overall_padding)
         self.flight_zone = StringVar(value='2.5')
-        ttk.Entry(self.flightControlFrame, textvariable=self.flight_zone).grid(column=3, row=1, padx=overall_padding, pady=overall_padding)
+        ttk.Entry(self.flightControlFrame, textvariable=self.flight_zone).grid(column=4, row=1, padx=overall_padding, pady=overall_padding)
         
         # text input for connection status
         self.is_connected = StringVar()
         self.is_connected.set(str(False))
         self.connection_status_label = ttk.Label(self.flightControlFrame, textvariable=self.is_connected)
-        self.connection_status_label.grid(column=4, row=0, padx=overall_padding, pady=overall_padding)
+        self.connection_status_label.grid(column=2, row=0, padx=overall_padding, pady=overall_padding)
  
     # create mode selection dropdown
     def createModeSelection(self):
@@ -137,7 +141,7 @@ class Applet(Tk):
     
     # action when 'Connect' button is clicked
     def connectClient(self):
-        self.client = SimpleClient(use_controller=False, use_observer=False, channel=self.channel.get())
+        self.client = SimpleClient(use_controller=False, use_observer=True, channel=self.channel.get())
         self.is_connected.set(str(self.client.is_connected))
         self.client.connect()
         self.is_connected.set(str(self.client.is_connected))
@@ -179,6 +183,7 @@ class Applet(Tk):
         # flight is complete
         self.dts = []
         self.flight_in_progress = False
+        self.is_connected.set(str(self.client.is_connected))
         
         # make sure flight wasn't aborted
         if self.abort:
