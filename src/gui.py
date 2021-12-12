@@ -143,7 +143,7 @@ class Applet(Tk):
     
     # action when 'Connect' button is clicked
     def connectClient(self):
-        self.client = SimpleClient(use_controller=False, use_observer=True, channel=self.channel.get())
+        self.client = SimpleClient(use_controller=True, use_observer=False, channel=self.channel.get())
         self.is_connected.set(str(self.client.is_connected))
         self.client.connect()
         self.is_connected.set(str(self.client.is_connected))
@@ -153,9 +153,10 @@ class Applet(Tk):
         self.flight_coordinates = np.divide(self.coordinates, canvas_width/float(self.flight_zone.get()))
 
     # convert from world coordinates to canvas pixel, typecast as integers as well
-    def convert_world_to_pixel(self):
-        self.flight_data = np.divide(self.flight_data, float(self.flight_zone.get())/canvas_width)
-        self.flight_data = [(int(x[1]), int(x[0])) for x in self.flight_data]
+    def convert_world_to_pixel(self, flight_data):
+        flight_data = np.divide(flight_data, float(self.flight_zone.get())/canvas_width)
+        flight_data = [(int(x[1]), int(x[0])) for x in flight_data]
+        return flight_data
 
     # action when 'Flight' button is clicked
     def runFlight(self):
@@ -193,20 +194,29 @@ class Applet(Tk):
             return
         
         # convert to flight coordinates tuples
-        self.flight_data = []
+        self.flight_data_default = []
+        self.flight_data_custom = []
         for idx in range(len(self.client.data['stateEstimate.x']['data'])):
             
             # record data if timestamp is within plotted location
             if self.client.data['start_time'] < self.client.data['stateEstimate.x']['time'][idx] < self.client.data['end_time']:
-                self.flight_data.append((self.client.data['stateEstimate.x']['data'][idx], self.client.data['stateEstimate.y']['data'][idx]))
+                self.flight_data_default.append((self.client.data['stateEstimate.x']['data'][idx], self.client.data['stateEstimate.y']['data'][idx]))
+                self.flight_data_custom.append((self.client.data['ae483log.o_x']['data'][idx], self.client.data['ae483log.o_y']['data'][idx]))
         
         # obtain o_x, o_y and convert to pixels
-        self.convert_world_to_pixel()
-                
+        self.flight_data_default = self.convert_world_to_pixel(self.flight_data_default)
+        self.flight_data_custom = self.convert_world_to_pixel(self.flight_data_custom)
+
         # plot data onto canvas
-        lastx, lasty = self.flight_data[0][0], self.flight_data[0][1]
-        for coord in self.flight_data[1:]:
+        lastx, lasty = self.flight_data_default[0][0], self.flight_data_default[0][1]
+        for coord in self.flight_data_default[1:]:
             self.canvas.create_line(lastx, lasty, coord[0], coord[1], fill='green')
+            lastx, lasty = coord[0], coord[1]
+            
+        # plot data onto canvas
+        lastx, lasty = self.flight_data_custom[0][0], self.flight_data_custom[0][1]
+        for coord in self.flight_data_custom[1:]:
+            self.canvas.create_line(lastx, lasty, coord[0], coord[1], fill='blue')
             lastx, lasty = coord[0], coord[1]
             
         # save flight data to directory
