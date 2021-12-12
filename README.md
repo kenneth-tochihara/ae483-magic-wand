@@ -46,14 +46,26 @@ Clone control code from this repository
 git clone https://github.com/ktt3/ae483-magic-wand.git
 ```
 
-### Executing program
+## Executing program
 
-* How to run the program
-* Step-by-step bullets
+#### MacOS
+
+Make the script executable (one time)
 ```
-code blocks for commands
+chmod +x run_macos_.sh
 ```
 
+Run the script in Terminal
+```
+./run_macos_.sh
+```
+
+#### Windows
+
+Run the script in Command Prompt
+```
+run_win.bat
+```
 ## Authors
 
 Erika Jarosch, George Petrov, Justin Roskamp, Kenneth Tochihara
