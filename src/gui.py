@@ -148,11 +148,11 @@ class Applet(Tk):
         self.client.connect()
         self.is_connected.set(str(self.client.is_connected))
 
-    # convert from world coordinates to canvas pixels
+    # convert from canvas pixel to world coordinates
     def convert_pixel_to_world(self):
         self.flight_coordinates = np.divide(self.coordinates, canvas_width/float(self.flight_zone.get()))
 
-    # convert from canvas pixels to world coordinates, typecast as integers as well
+    # convert from world coordinates to canvas pixel, typecast as integers as well
     def convert_world_to_pixel(self):
         self.flight_data = np.divide(self.flight_data, float(self.flight_zone.get())/canvas_width)
         self.flight_data = [(int(x[1]), int(x[0])) for x in self.flight_data]
