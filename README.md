@@ -46,7 +46,7 @@ Clone control code from this repository
 git clone https://github.com/ktt3/ae483-magic-wand.git
 ```
 
-### Executing program
+## Executing program
 
 #### MacOS
 
