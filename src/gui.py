@@ -100,10 +100,6 @@ class Applet(Tk):
         self.clearSelectionButton.place(x=0, y=0)
         self.clearSelectionButton.grid(column=0, row=2, padx=overall_padding, pady=overall_padding)
     
-    # create data saving interface
-    def createDataSave(self):
-        pass
-    
     # action when 'Connect' button is clicked
     def connectClient(self):
         self.client = SimpleClient(use_controller=True, use_observer=False, channel=self.channel.get())
