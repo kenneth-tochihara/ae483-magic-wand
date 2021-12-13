@@ -41,9 +41,6 @@ class Applet(Tk):
         # create all the objects
         self.createCanvas()
         self.createFlightControl()
-        # self.createModeSelection()
-        # self.createPlaneSelection()
-        # self.createClear()
         
         # create client
         self.client = SimpleClient(use_controller=False, use_observer=True, channel=self.channel.get())
@@ -97,40 +94,6 @@ class Applet(Tk):
         self.connection_status_label = ttk.Label(self.flightControlFrame, textvariable=self.is_connected)
         self.connection_status_label.grid(column=2, row=0, padx=overall_padding, pady=overall_padding)
  
-    # create mode selection dropdown
-    def createModeSelection(self):
-        
-        # create mode selection frame
-        self.modeSelectionFrame = ttk.LabelFrame(self, text="Mode Selection", labelanchor="n")
-        self.modeSelectionFrame.grid(column=0, row=0, padx=overall_padding, pady=overall_padding)
-        
-        # set default mode
-        self.modes = ["", "Copycat", "Spellcaster", "Live"]
-        self.mode = StringVar()
-        self.mode.set(self.modes[1])
-        
-        # create dropdown menu
-        self.modeSelectionOptionMenu = ttk.OptionMenu(self.modeSelectionFrame, self.mode, *self.modes)
-        self.modeSelectionOptionMenu.pack()
-        self.modeSelectionOptionMenu.configure(width=len(max(self.modes, key=len)))
-    
-    # create plane selection
-    def createPlaneSelection(self):
-        
-        # create plane selection frame
-        self.planeSelectionFrame = ttk.LabelFrame(self, text="Plane Selection", labelanchor="n")
-        self.planeSelectionFrame.grid(column=0, row=1, padx=overall_padding, pady=overall_padding)
-        
-        # set default plane
-        planes = ['XY', 'XZ', 'YZ']
-        self.plane = StringVar()
-        self.plane.set(planes[0])
-        
-        # create radio buttons
-        ttk.Radiobutton(self.planeSelectionFrame, text=planes[0], variable=self.plane, value=planes[0]).pack()
-        ttk.Radiobutton(self.planeSelectionFrame, text=planes[1], variable=self.plane, value=planes[1]).pack()
-        ttk.Radiobutton(self.planeSelectionFrame, text=planes[2], variable=self.plane, value=planes[2]).pack()
-        
     # create clear button
     def createClear(self):
         self.clearSelectionButton = ttk.Button(self, text="Clear", command=self.clearFlight)

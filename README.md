@@ -32,6 +32,8 @@ pip install notebook
 pip install cfclient
 pip install cflib
 pip install pybullet --no-cache-dir
+pip install tk
+pip install Pillow
 ```
 
 ### Download the code
