@@ -1,10 +1,23 @@
 # Magic Wand
 
-This project utilizes a Wii remote to plan the path of a drone.
+This project utilizes a Wii remote to determine the flight path of a drone.
 
-## Description
+## File Description
 
-An in-depth paragraph about your project and overview of use.
+- `data`: Data from each flight
+   - `[date]-[time]-[defualt/custom]-ctrl-[default/custom]-obsv`: Flight date and time, and specified configuration
+      -  `flight_video.mov`: User-uploaded video of the flight
+      -  `gui.png`: Image of the gui after the flight 
+      -  `hardware_data.json`: Data from the flight
+-  `docs`: Documentation for this project, including project updates/reports
+-  `src`: Source code to run the application
+   -  `client.py`: Drone-interfacing class imported by the graphical user interface (GUI)
+   -  `gui.py`: GUI for the user to control the drone
+   -  `main.py`: Integrated file where application is executed
+   -  `controller_ae483.c`: Custom controller and observer firmware
+- `run_macos.sh`: Executable to run the application on MacOS
+- `run_win.bat`: Executable to run the application on Windows
+- `final-project.ipynb`: Jupyter Notebook analyzing the flights in different configurations
 
 ## Getting Started
 
