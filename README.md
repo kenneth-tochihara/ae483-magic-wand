@@ -1,6 +1,6 @@
 # Magic Wand
 
-This project utilizes a Wii remote to determine the flight path of a drone. Although instructions for a Wii remote driver 
+This project utilizes a Wii remote to determine the flight path of a drone. Although installation instructions for a Wii remote driver exist, it is not required to run the application.
 
 ## File Description
 
