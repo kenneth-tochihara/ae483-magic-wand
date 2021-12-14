@@ -1,6 +1,6 @@
 # Magic Wand
 
-This project utilizes a Wii remote to determine the flight path of a drone.
+This project utilizes a Wii remote to determine the flight path of a drone. Although instructions for a Wii remote driver 
 
 ## File Description
 
@@ -38,6 +38,35 @@ brew tap PX4/homebrew-px4
 brew install gcc-arm-none-eabi
 ```
 
+#### Windows
+
+* Required tools
+    * Miniconda/Anaconda
+
+Install the USB driver from [Zadig](https://zadig.akeo.ie/).
+
+Download file `zadig-2.5.exe`.
+
+Plug in the Crazyradio USB Dongle and run the program.
+
+Select the dongle and in the "Driver" section, click the up/down arrows until "libsub-win32" shows up.
+
+Install the driver.
+
+### Download the code
+
+Clone the firmware for drone
+```
+git clone --recursive https://github.com/tbretl/crazyflie-firmware.git
+```
+:exclamation: Flashing the drone with a custom controller and observer is not required for this program.
+
+
+Clone control code from this repository
+```
+git clone https://github.com/ktt3/ae483-magic-wand.git
+```
+
 Install the necessary Python packages using conda
 ```
 conda install numpy scipy sympy matplotlib
@@ -47,18 +76,6 @@ pip install cflib
 pip install pybullet --no-cache-dir
 pip install tk
 pip install Pillow
-```
-
-### Download the code
-
-Clone the firmware for drone
-```
-git clone --recursive https://github.com/tbretl/crazyflie-firmware.git
-```
-
-Clone control code from this repository
-```
-git clone https://github.com/ktt3/ae483-magic-wand.git
 ```
 
 ## Executing program
@@ -77,10 +94,17 @@ Run the script in Terminal
 
 #### Windows
 
-Run the script in Command Prompt
+To start, run the commands in Anaconda Prompt
 ```
+conda activate ae483
 run_win.bat
 ```
+
+To finish, run the commands in Anaconda Prompt
+```
+conda deactivate
+```
+
 ## Authors
 
 Erika Jarosch, George Petrov, Justin Roskamp, Kenneth Tochihara
