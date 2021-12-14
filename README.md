@@ -67,12 +67,12 @@ git clone https://github.com/ktt3/ae483-magic-wand.git
 
 Make the script executable (one time)
 ```
-chmod +x run_macos_.sh
+chmod +x run_macos.sh
 ```
 
 Run the script in Terminal
 ```
-./run_macos_.sh
+./run_macos.sh
 ```
 
 #### Windows
