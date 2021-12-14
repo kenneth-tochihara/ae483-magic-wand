@@ -69,6 +69,11 @@ Clone control code from this repository
 git clone https://github.com/ktt3/ae483-magic-wand.git
 ```
 
+Move to the new directory
+```
+cd ae483-magic-wand
+```
+
 Install the necessary Python packages using conda
 ```
 conda install numpy scipy sympy matplotlib
