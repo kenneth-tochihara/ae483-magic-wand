@@ -53,6 +53,8 @@ Select the dongle and in the "Driver" section, click the up/down arrows until "l
 
 Install the driver.
 
+Install the Wii remote driver [here](https://linustechtips.com/topic/588687-how-to-use-your-wiimote-and-nunchuck-as-a-mouse/).
+
 ### Download the code
 
 Clone the firmware for drone
